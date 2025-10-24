@@ -1,47 +1,47 @@
-Task: Implement a frontend web application called "World Clock Map" with the following features:
+**Task:**
+Create a browser-based implementation of the **2048 puzzle game**.
 
-Requirements:
+**Requirements:**
 
-1. Map Interaction:
-   - Display an interactive world map using Leaflet.js or Google Maps API.
-   - Predefine a list of major cities with their coordinates and timezones (e.g., New York, London, Tokyo, Sydney).
-   - Clicking a city marker on the map adds that city to a "World Clock List".
-   - Hovering over a marker shows the city name and timezone.
+1. **Game Board:**
 
-2. World Clock List:
-   - Display all added cities with:
-     * City name
-     * Local time (updated every second)
-     * Timezone
-   - Allow users to remove cities from the list.
-   - Optional: Allow users to drag and reorder cities in the list.
+   * Implement a 4×4 grid board.
+   * Tiles should contain numbers that are powers of 2 (2, 4, 8, …, 2048).
+   * Tiles slide smoothly when moved.
 
-3. Time Calculation:
-   - Use the city's timezone to calculate local time accurately.
-   - Time formatting should be done via JavaScript `Intl.DateTimeFormat` or libraries like Luxon or Day.js.
-   - Optional: Allow switching between 12-hour and 24-hour format, and display date and weekday.
+2. **Gameplay Mechanics:**
 
-4. UI Layout:
-   - Map should appear at the top of the page.
-   - Clock list should appear below the map.
-   - UI should be clean, simple, and responsive.
+   * Player can move tiles **up, down, left, right** using keyboard arrow keys (optionally WASD).
+   * When two tiles with the same value collide, they merge into a single tile with double the value.
+   * After every move, a new tile (2 or 4) is randomly spawned in an empty cell.
+   * If no valid moves remain, the game ends.
 
-5. Data Example (predefined cities):
-   [
-     {"name": "New York", "lat": 40.7128, "lng": -74.0060, "timezone": "America/New_York"},
-     {"name": "London", "lat": 51.5074, "lng": -0.1278, "timezone": "Europe/London"},
-     {"name": "Tokyo", "lat": 35.6895, "lng": 139.6917, "timezone": "Asia/Tokyo"},
-     {"name": "Sydney", "lat": -33.8688, "lng": 151.2093, "timezone": "Australia/Sydney"}
-   ]
+3. **Scoring System:**
 
-Output Requirements:
-- Provide a working HTML/JS/CSS frontend application.
-- Include comments explaining key code sections.
-- Demonstrate at least 4 cities in the initial setup.
-- Ensure local times update every second correctly.
-- Clicking a city marker adds it to the list, clicking "remove" deletes it.
+   * Add points equal to the value of the merged tile.
+   * Display the **current score** and **best score** on the screen.
 
-Optional Enhancements:
-- 12/24-hour toggle
-- Date and weekday display
-- Drag to reorder cities
+4. **Win/Loss Conditions:**
+
+   * The player wins if they reach the **2048 tile**.
+   * Display a “You Win” message with the option to continue playing.
+   * Display a “Game Over” message when no moves are possible.
+
+5. **UI/UX Requirements:**
+
+   * Clean and minimalistic design similar to the original 2048 game.
+   * Animate tile movements and merging for smooth gameplay.
+   * Include **Restart button** to reset the game.
+   * Make it responsive and playable on desktop and mobile browsers.
+
+6. **Implementation Notes:**
+
+   * Use **plain JavaScript with HTML/CSS**, or optionally React.
+   * All logic should run in the browser without a backend.
+
+7. **Optional Enhancements:**
+
+   * Add **undo button** (one-step back).
+   * Add **different board sizes** (e.g., 5×5, 6×6).
+   * Support **dark/light themes**.
+
