@@ -1,0 +1,16 @@
+{
+  "name": "joseph_test_repo_v3",
+  "version": "1.0.0",
+  "description": "Browser-based implementation of the 2048 puzzle game.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "2048",
+    "game",
+    "puzzle"
+  ],
+  "author": "",
+  "license": "ISC"
+}
