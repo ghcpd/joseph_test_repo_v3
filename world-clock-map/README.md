@@ -1,16 +1,31 @@
-# React + Vite
+# World Clock Map
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive React application that pairs an interactive world map with a live-updating list of city clocks. The interface is powered by [Leaflet](https://leafletjs.com/) for mapping and the browser `Intl.DateTimeFormat` API for accurate timezone calculations.
 
-Currently, two official plugins are available:
+## Quick start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+The development server runs on [http://localhost:5173](http://localhost:5173). Click any city marker to add it to the world clock list. Remove a city from the list and click its marker again to re-add it.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+- Interactive world map with tooltips for each predefined city (New York, London, Tokyo, Sydney, Los Angeles, Cape Town, Rio de Janeiro and Dubai).
+- Live local time, date and timezone data for every tracked city, refreshed once per second via a shared timer.
+- 12-hour / 24-hour format toggle that updates every clock simultaneously.
+- Removable clock cards arranged in a responsive grid for quick comparison.
+- Clean layout that keeps the map above the clock list on all screen sizes.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Available scripts
+
+- `npm run dev` – start the local development server.
+- `npm run build` – create an optimized production bundle.
+- `npm run lint` – run ESLint on the project sources.
+
+## Notes
+
+- Leaflet’s default marker assets are bundled automatically; no extra configuration is required when deploying the built output.
+- The world clock list is pre-populated with four cities so all required data points are demonstrated immediately.
