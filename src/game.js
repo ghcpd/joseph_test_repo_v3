@@ -200,7 +200,11 @@ export class Game2048 {
     })
 
     if (!moved) {
-      return this._buildResult({ moved: false })
+      const noMovesRemain = !this.movesAvailable()
+      if (noMovesRemain) {
+        this.over = true
+      }
+      return this._buildResult({ moved: false, locked: noMovesRemain ? 'over' : null })
     }
 
     this.score += scoreGained
