@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Clock Map</title>
+    
+    <!-- Custom CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Map container */
+        #map {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #mapCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .city-marker {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            margin-left: -20px;
+            margin-top: -20px;
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+        }
+
+        .city-marker:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            z-index: 200;
+        }
+
+        .marker-tooltip {
+            position: absolute;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 300;
+            display: none;
+        }
+
+        .marker-tooltip.visible {
+            display: block;
+        }
+
+        .marker-tooltip h4 {
+            margin: 0 0 3px 0;
+            color: #667eea;
+        }
+
+        .marker-tooltip p {
+            margin: 0;
+            color: #666;
+            font-size: 12px;
+        }
+
+        /* Controls section */
+        .controls {
+            padding: 20px 25px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .controls h3 {
+            color: #333;
+            font-size: 1.2em;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            top: 3px;
+            left: 3px;
+            transition: left 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 33px;
+        }
+
+        .toggle-label {
+            color: #555;
+            font-weight: 500;
+        }
+
+        /* Clock list */
+        .clock-list {
+            padding: 25px;
+            min-height: 200px;
+        }
+
+        .clock-list h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .empty-state p {
+            font-size: 1.2em;
+        }
+
+        /* City clock cards */
+        .city-clocks {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .city-clock {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: grab;
+        }
+
+        .city-clock:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .city-clock.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .city-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .city-name {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .remove-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .time-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .date-display {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .timezone-display {
+            font-size: 0.9em;
+            opacity: 0.8;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            #map {
+                height: 350px;
+            }
+
+            .city-clocks {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .city-marker {
+                width: 35px;
+                height: 35px;
+                margin-left: -17.5px;
+                margin-top: -17.5px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌍 World Clock Map</h1>
+            <p>Click on city markers to add them to your world clock list</p>
+        </header>
+
+        <!-- Map Section -->
+        <div id="map">
+            <svg id="mapCanvas" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+                <!-- Simple world map background -->
+                <rect width="1000" height="500" fill="#e0f2fe"/>
+                <!-- Simplified continents (decorative) -->
+                <path d="M 100 150 Q 150 120 200 140 L 250 130 L 280 160 L 250 200 L 200 190 L 150 200 Z" fill="#86efac" opacity="0.6"/>
+                <path d="M 350 100 Q 400 80 450 100 L 500 90 L 550 120 L 520 180 L 450 200 L 380 180 Z" fill="#86efac" opacity="0.6"/>
+                <path d="M 600 150 Q 650 130 700 150 L 750 140 L 800 170 L 770 230 L 700 250 L 630 230 Z" fill="#86efac" opacity="0.6"/>
+                <path d="M 150 280 Q 200 260 250 280 L 300 270 L 350 300 L 320 360 L 250 380 L 180 360 Z" fill="#86efac" opacity="0.6"/>
+                <path d="M 700 300 Q 750 280 800 300 L 850 290 L 880 320 L 850 380 L 800 400 L 730 380 Z" fill="#86efac" opacity="0.6"/>
+            </svg>
+            <!-- Tooltip for city markers -->
+            <div id="markerTooltip" class="marker-tooltip"></div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="controls">
+            <h3>World Clock List</h3>
+            <div class="toggle-container">
+                <span class="toggle-label">12-hour</span>
+                <div class="toggle-switch" id="timeFormatToggle"></div>
+                <span class="toggle-label">24-hour</span>
+            </div>
+        </div>
+
+        <!-- Clock List Section -->
+        <div class="clock-list">
+            <div id="cityClocks" class="city-clocks">
+                <!-- Empty state - shown when no cities are selected -->
+                <div class="empty-state" id="emptyState">
+                    <i>🕐</i>
+                    <p>No cities added yet. Click on a city marker to get started!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Script -->
+    <script>
+        // ============================================
+        // DATA: Predefined cities with coordinates and timezones
+        // ============================================
+        const CITIES = [
+            { name: "New York", lat: 40.7128, lng: -74.0060, timezone: "America/New_York", x: 250, y: 180 },
+            { name: "London", lat: 51.5074, lng: -0.1278, timezone: "Europe/London", x: 500, y: 140 },
+            { name: "Tokyo", lat: 35.6895, lng: 139.6917, timezone: "Asia/Tokyo", x: 850, y: 170 },
+            { name: "Sydney", lat: -33.8688, lng: 151.2093, timezone: "Australia/Sydney", x: 880, y: 350 },
+            { name: "Paris", lat: 48.8566, lng: 2.3522, timezone: "Europe/Paris", x: 510, y: 150 },
+            { name: "Dubai", lat: 25.2048, lng: 55.2708, timezone: "Asia/Dubai", x: 650, y: 200 },
+            { name: "Los Angeles", lat: 34.0522, lng: -118.2437, timezone: "America/Los_Angeles", x: 150, y: 190 },
+            { name: "Singapore", lat: 1.3521, lng: 103.8198, timezone: "Asia/Singapore", x: 780, y: 260 },
+            { name: "Mumbai", lat: 19.0760, lng: 72.8777, timezone: "Asia/Kolkata", x: 700, y: 210 },
+            { name: "Moscow", lat: 55.7558, lng: 37.6173, timezone: "Europe/Moscow", x: 600, y: 130 }
+        ];
+
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        let selectedCities = []; // Array to store cities added to the clock list
+        let is24HourFormat = false; // Default to 12-hour format
+        let updateInterval = null; // Interval for updating clocks
+
+        // ============================================
+        // MAP INITIALIZATION
+        // ============================================
+        function initializeMap() {
+            const mapContainer = document.getElementById('map');
+            const tooltip = document.getElementById('markerTooltip');
+
+            // Create markers for each city
+            CITIES.forEach(city => {
+                const marker = createCityMarker(city);
+                mapContainer.appendChild(marker);
+
+                // Add hover effect to show tooltip
+                marker.addEventListener('mouseenter', (e) => {
+                    showTooltip(city, e);
+                });
+
+                marker.addEventListener('mousemove', (e) => {
+                    updateTooltipPosition(e);
+                });
+
+                marker.addEventListener('mouseleave', () => {
+                    hideTooltip();
+                });
+
+                // Add click event to add city to clock list
+                marker.addEventListener('click', () => {
+                    addCityToClock(city);
+                });
+            });
+        }
+
+        /**
+         * Create a marker element for a city
+         */
+        function createCityMarker(city) {
+            const marker = document.createElement('div');
+            marker.className = 'city-marker';
+            marker.innerHTML = '📍';
+            marker.dataset.cityName = city.name;
+            
+            // Position marker based on city coordinates (scaled to map size)
+            // Using the predefined x, y positions that work with our SVG map
+            marker.style.left = city.x + 'px';
+            marker.style.top = city.y + 'px';
+            
+            return marker;
+        }
+
+        /**
+         * Show tooltip for a city marker
+         */
+        function showTooltip(city, event) {
+            const tooltip = document.getElementById('markerTooltip');
+            tooltip.innerHTML = `
+                <h4>${city.name}</h4>
+                <p>${city.timezone}</p>
+            `;
+            tooltip.classList.add('visible');
+            updateTooltipPosition(event);
+        }
+
+        /**
+         * Update tooltip position based on mouse position
+         */
+        function updateTooltipPosition(event) {
+            const tooltip = document.getElementById('markerTooltip');
+            const mapContainer = document.getElementById('map');
+            const rect = mapContainer.getBoundingClientRect();
+            
+            tooltip.style.left = (event.clientX - rect.left + 15) + 'px';
+            tooltip.style.top = (event.clientY - rect.top - 10) + 'px';
+        }
+
+        /**
+         * Hide tooltip
+         */
+        function hideTooltip() {
+            const tooltip = document.getElementById('markerTooltip');
+            tooltip.classList.remove('visible');
+        }
+
+        // ============================================
+        // CITY CLOCK MANAGEMENT
+        // ============================================
+        
+        /**
+         * Add a city to the world clock list
+         */
+        function addCityToClock(city) {
+            // Check if city is already in the list
+            if (selectedCities.some(c => c.name === city.name)) {
+                alert(`${city.name} is already in your clock list!`);
+                return;
+            }
+
+            // Add city to selected cities
+            selectedCities.push(city);
+            
+            // Update the UI
+            renderClockList();
+        }
+
+        /**
+         * Remove a city from the world clock list
+         */
+        function removeCityFromClock(cityName) {
+            selectedCities = selectedCities.filter(c => c.name !== cityName);
+            renderClockList();
+        }
+
+        /**
+         * Render the entire clock list UI
+         */
+        function renderClockList() {
+            const container = document.getElementById('cityClocks');
+            let emptyState = document.getElementById('emptyState');
+
+            // Show empty state if no cities selected
+            if (selectedCities.length === 0) {
+                if (emptyState) {
+                    emptyState.style.display = 'block';
+                }
+                container.innerHTML = '';
+                if (emptyState) {
+                    container.appendChild(emptyState);
+                }
+                return;
+            }
+
+            // Hide empty state
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+            
+            // Clear and rebuild the clock list
+            container.innerHTML = '';
+            
+            selectedCities.forEach((city, index) => {
+                const clockCard = createClockCard(city, index);
+                container.appendChild(clockCard);
+            });
+
+            // Update all clocks immediately
+            updateAllClocks();
+        }
+
+        /**
+         * Create a clock card element for a city
+         */
+        function createClockCard(city, index) {
+            const card = document.createElement('div');
+            card.className = 'city-clock';
+            card.draggable = true;
+            card.dataset.index = index;
+            card.dataset.cityName = city.name;
+
+            card.innerHTML = `
+                <div class="city-header">
+                    <div class="city-name">${city.name}</div>
+                    <button class="remove-btn" onclick="removeCityFromClock('${city.name}')">×</button>
+                </div>
+                <div class="date-display" id="date-${city.name}"></div>
+                <div class="time-display" id="time-${city.name}">--:--:--</div>
+                <div class="timezone-display">${city.timezone}</div>
+            `;
+
+            // Add drag and drop event listeners
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('drop', handleDrop);
+            card.addEventListener('dragend', handleDragEnd);
+
+            return card;
+        }
+
+        // ============================================
+        // TIME CALCULATION AND DISPLAY
+        // ============================================
+
+        /**
+         * Get current time for a specific timezone
+         */
+        function getTimeForTimezone(timezone) {
+            const now = new Date();
+            
+            // Time formatter
+            const timeFormatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: timezone,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: !is24HourFormat
+            });
+
+            // Date formatter with weekday
+            const dateFormatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: timezone,
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            return {
+                time: timeFormatter.format(now),
+                date: dateFormatter.format(now)
+            };
+        }
+
+        /**
+         * Update all clocks in the list
+         */
+        function updateAllClocks() {
+            selectedCities.forEach(city => {
+                const { time, date } = getTimeForTimezone(city.timezone);
+                
+                const timeElement = document.getElementById(`time-${city.name}`);
+                const dateElement = document.getElementById(`date-${city.name}`);
+                
+                if (timeElement) {
+                    timeElement.textContent = time;
+                }
+                if (dateElement) {
+                    dateElement.textContent = date;
+                }
+            });
+        }
+
+        /**
+         * Start the clock update interval
+         */
+        function startClockUpdates() {
+            // Clear any existing interval
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+
+            // Update clocks every second
+            updateInterval = setInterval(updateAllClocks, 1000);
+        }
+
+        // ============================================
+        // DRAG AND DROP FUNCTIONALITY
+        // ============================================
+
+        let draggedElement = null;
+        let draggedIndex = null;
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            draggedIndex = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            if (draggedElement !== this) {
+                const dropIndex = parseInt(this.dataset.index);
+                
+                // Reorder the selectedCities array
+                const draggedCity = selectedCities[draggedIndex];
+                selectedCities.splice(draggedIndex, 1);
+                selectedCities.splice(dropIndex, 0, draggedCity);
+                
+                // Re-render the clock list
+                renderClockList();
+            }
+
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        // ============================================
+        // TIME FORMAT TOGGLE
+        // ============================================
+
+        function setupTimeFormatToggle() {
+            const toggle = document.getElementById('timeFormatToggle');
+            
+            toggle.addEventListener('click', () => {
+                is24HourFormat = !is24HourFormat;
+                toggle.classList.toggle('active');
+                
+                // Update all clocks immediately with new format
+                updateAllClocks();
+            });
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMap();
+            setupTimeFormatToggle();
+            startClockUpdates();
+            
+            // Show empty state initially
+            document.getElementById('emptyState').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
